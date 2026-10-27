@@ -1,0 +1,72 @@
+datasource db { provider = "mysql" url = env("DATABASE_URL") }
+generator client { provider = "prisma-client-js" }
+
+enum Role { SUPER_ADMIN ADMIN SALES_MANAGER SALES_EXECUTIVE MANAGEMENT }
+enum LeadStatus { NEW CONTACTED INTERESTED QUALIFIED SITE_VISIT_PLANNED SITE_VISIT_DONE NEGOTIATION BOOKED NOT_INTERESTED LOST DUPLICATE INVALID }
+enum Temperature { HOT WARM COLD }
+enum Purpose { SELF_USE INVESTMENT RENTAL OTHER }
+enum SiteVisitStatus { SCHEDULED COMPLETED CANCELLED NO_SHOW RESCHEDULED }
+
+model User {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  passwordHash String
+  role Role @default(SALES_EXECUTIVE)
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  leads Lead[] @relation("Owner")
+  activities Activity[]
+  notes Note[]
+  followUps FollowUp[]
+}
+
+model Project {
+  id String @id @default(cuid())
+  name String
+  location String
+  developer String?
+  status String @default("ACTIVE")
+  createdAt DateTime @default(now())
+  leads Lead[]
+}
+
+model Lead {
+  id String @id @default(cuid())
+  leadCode String @unique
+  fullName String
+  mobile String
+  alternateNumber String?
+  email String?
+  whatsapp String?
+  city String?
+  configuration String?
+  budget Decimal? @db.Decimal(15,2)
+  preferredLocation String?
+  purpose Purpose?
+  source String
+  campaign String?
+  adSet String?
+  ad String?
+  status LeadStatus @default(NEW)
+  temperature Temperature @default(WARM)
+  projectId String
+  project Project @relation(fields:[projectId], references:[id])
+  ownerId String?
+  owner User? @relation("Owner", fields:[ownerId], references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  notes Note[]
+  followUps FollowUp[]
+  siteVisits SiteVisit[]
+  activities Activity[]
+  @@index([mobile])
+  @@index([projectId])
+  @@index([status])
+  @@index([source])
+}
+
+model Note { id String @id @default(cuid()); text String; leadId String; authorId String; createdAt DateTime @default(now()); lead Lead @relation(fields:[leadId], references:[id], onDelete:Cascade); author User @relation(fields:[authorId], references:[id]) }
+model FollowUp { id String @id @default(cuid()); type String; dueAt DateTime; reminder Boolean @default(true); notes String?; leadId String; ownerId String?; createdAt DateTime @default(now()); lead Lead @relation(fields:[leadId], references:[id], onDelete:Cascade); owner User? @relation(fields:[ownerId], references:[id]) }
+model SiteVisit { id String @id @default(cuid()); scheduledAt DateTime; status SiteVisitStatus @default(SCHEDULED); feedback String?; peopleCount Int?; configuration String?; leadId String; lead Lead @relation(fields:[leadId], references:[id], onDelete:Cascade); createdAt DateTime @default(now()) }
+model Activity { id String @id @default(cuid()); type String; description String; leadId String?; userId String; createdAt DateTime @default(now()); lead Lead? @relation(fields:[leadId], references:[id], onDelete:SetNull); user User @relation(fields:[userId], references:[id]) }

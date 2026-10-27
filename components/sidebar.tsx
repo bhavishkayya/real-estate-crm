@@ -1,0 +1,5 @@
+'use client';
+import Link from 'next/link';
+import {LayoutDashboard,Users,Building2,CalendarClock,MapPin,BarChart3,UserCog,Settings,LogOut} from 'lucide-react';
+const items=[['Dashboard','/dashboard',LayoutDashboard],['Leads','/leads',Users],['Projects','/projects',Building2],['Follow-ups','/follow-ups',CalendarClock],['Site Visits','/site-visits',MapPin],['Reports','/reports',BarChart3],['Users','/users',UserCog],['Settings','/settings',Settings]] as const;
+export function Sidebar(){return <aside className="sidebar"><div className="brand"><div className="brand-mark">R</div><div><b>RealEstate CRM</b><small>Sales Command Center</small></div></div><nav>{items.map(([label,href,Icon])=><Link href={href} key={href}><Icon size={18}/><span>{label}</span></Link>)}</nav><div className="sidebar-user"><div className="avatar">BP</div><div><b>Bhavish Praveen</b><small>Super Admin</small></div><LogOut size={17}/></div></aside>}

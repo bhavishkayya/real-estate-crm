@@ -1,0 +1,2 @@
+import {Topbar} from '@/components/topbar';
+export default function Page(){return <><Topbar title="settings"/><div className="content"><div className="card"><div className="card-head"><h2>settings</h2><span className="muted">Module ready for live database records</span></div><p className="muted">This module is included in the CRM foundation. Connect the MySQL database and authentication to make it fully live.</p></div></div></>}
