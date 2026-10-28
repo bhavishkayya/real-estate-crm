@@ -1,2 +1,8 @@
-import {Topbar} from '@/components/topbar';
-export default function Page(){return <><Topbar title="follow ups"/><div className="content"><div className="card"><div className="card-head"><h2>follow ups</h2><span className="muted">Module ready for live database records</span></div><p className="muted">This module is included in the CRM foundation. Connect the MySQL database and authentication to make it fully live.</p></div></div></>}
+import { redirect } from "next/navigation";
+import { Topbar } from "@/components/topbar";
+import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
+import { FollowUpForm } from "@/components/crud-forms";
+import { FollowUpToggle } from "@/components/followup-toggle";
+export const dynamic = "force-dynamic";
+export default async function FollowUpsPage(){let user;try{user=await requireUser()}catch{redirect("/login")}const where=user.role==="SALES_EXECUTIVE"?{ownerId:user.id}:{};const items=await prisma.followUp.findMany({where,include:{lead:{select:{leadCode:true,fullName:true,mobile:true}}},orderBy:[{completed:"asc"},{dueAt:"asc"}],take:300});return <><Topbar title="Follow-ups" subtitle="Schedule and track calls, messages and meetings"/><div className="content"><div className="card"><div className="card-head"><h2>Schedule a follow-up</h2></div><FollowUpForm/></div><div className="card" style={{marginTop:18}}><div className="card-head"><h2>Follow-up schedule</h2><span className="muted">{items.length} records</span></div><div className="table-wrap"><table className="table"><thead><tr><th>Lead</th><th>Type</th><th>Due</th><th>Notes</th><th>Status</th><th>Action</th></tr></thead><tbody>{items.map(f=><tr key={f.id}><td><b>{f.lead.fullName}</b><div className="muted">{f.lead.leadCode} · {f.lead.mobile}</div></td><td>{f.type}</td><td>{f.dueAt.toLocaleString("en-IN")}</td><td>{f.notes||"—"}</td><td>{f.completed?"Completed":f.dueAt<new Date()?"Overdue":"Pending"}</td><td><FollowUpToggle id={f.id} completed={f.completed}/></td></tr>)}</tbody></table></div>{items.length===0&&<p className="empty">No follow-ups yet.</p>}</div></div></>}
